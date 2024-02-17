@@ -1,0 +1,25 @@
+{
+  "name": "haikara/typewriter",
+  "type": "library",
+  "config": {
+    "platform": {
+      "php": "8.0"
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "Haikara\\Typewriter\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Haikara\\Typewriter\\Tests\\": "tests/"
+    }
+  },
+  "require": {
+    "php": ">=8.0.0 <8.4.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.6"
+  }
+}

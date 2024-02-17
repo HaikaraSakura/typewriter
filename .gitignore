@@ -1,0 +1,7 @@
+/vendor/
+composer.lock
+auth.json
+.DS_Store
+/.vscode/
+/.idea/
+.env
