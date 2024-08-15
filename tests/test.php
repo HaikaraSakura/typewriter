@@ -14,5 +14,6 @@ $writer->setBasePath(__DIR__);
 
 $writer->assign('title', 'タイトル');
 $writer->assign('token', 'トークン');
+$writer->assign('brand', 'ブランド');
 
 echo $writer->render('header.php');

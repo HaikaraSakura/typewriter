@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   php80:
     build: docker/php80

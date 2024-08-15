@@ -36,5 +36,5 @@ interface ViewInterface
      * @param callable ...$callbacks
      * @return mixed
      */
-    public static function filter($value, callable ...$callbacks): mixed;
+    public static function filter(mixed $value, callable ...$callbacks): mixed;
 }

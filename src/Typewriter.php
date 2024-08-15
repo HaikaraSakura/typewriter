@@ -2,9 +2,11 @@
 
 namespace Haikara\Typewriter;
 
-class Typewriter implements TemplateEngineInterface
+use LogicException;
+
+class Typewriter
 {
-    protected BasePath $basePath;
+    protected string $basePath;
 
     /**
      * @var array<string, mixed>
@@ -12,16 +14,18 @@ class Typewriter implements TemplateEngineInterface
     protected array $assigns = [];
 
     /**
-     * @var ?ViewModelInterface
+     * @var ViewInterface|null
      */
-    protected ?ViewModelInterface $viewModel;
+    protected ViewInterface|null $view;
 
     /**
-     * @param string|BasePath $basePath
+     * @param string $basePath
      * @return void
      */
-    public function setBasePath(string|BasePath $basePath): void {
-        $this->basePath = is_string($basePath) ? new BasePath($basePath) : $basePath;
+    public function setBasePath(string $basePath): void {
+        assert(is_dir($basePath));
+
+        $this->basePath = realpath($basePath);
     }
 
     /**
@@ -34,8 +38,8 @@ class Typewriter implements TemplateEngineInterface
         $this->assigns[$name] = $value;
     }
 
-    public function setViewModel(ViewModelInterface $viewModel): void {
-        $this->viewModel = $viewModel;
+    public function setView(ViewInterface $view): void {
+        $this->view = $view;
     }
 
     /**
@@ -43,29 +47,42 @@ class Typewriter implements TemplateEngineInterface
      * @return string
      */
     public function render(string $filepath): string {
-        $this->basePath ??= new BasePath('/');
+        $this->basePath ??= '/';
 
-        if (isset($this->viewModel)) {
-            $this->viewModel->setBasePath($this->basePath);
+        $path = $this->basePath . '/' . ltrim($filepath, './');
+        $path = realpath($path);
 
-            $outputBuffering = (function (string $filepath): void {
-                require new TemplateFile($this->basePath, $filepath);
-            })->bindTo($this->viewModel, $this->viewModel);
-        } else {
-            $view = new View();
-            $view->setBasePath($this->basePath);
-
-            $outputBuffering = (function (string $filepath, array $assigns): void {
-                foreach ($assigns as $n => $v) {
-                    $$n = $v;
-                }
-
-                require new TemplateFile($this->basePath, $filepath);
-            })->bindTo($view, $view);
+        if ($path === false || !is_file($path)) {
+            throw new LogicException('ファイルパスが不正です。');
         }
 
+        if (isset($this->view)) {
+            $view = $this->view;
+
+            $outputBuffering = function (string $path): void {
+                require new TemplateFile($path);
+            };
+        } else {
+            $view = new View();
+
+            $outputBuffering = function (string $path, array $assigns): void {
+                foreach ($assigns as $name => $value) {
+                    $$name = $value;
+                }
+
+                require new TemplateFile($path);
+            };
+        }
+
+        foreach ($this->assigns as $name => $value) {
+            $view->assign($name, $value);
+        }
+
+        $outputBuffering = $outputBuffering->bindTo($view, $view);
+        $view->setBasePath($this->basePath);
+
         ob_start();
-        $outputBuffering($filepath, $this->assigns);
+        $outputBuffering($path, $this->assigns);
         return ob_get_clean();
     }
 }

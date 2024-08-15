@@ -15,6 +15,6 @@ $writer->setBasePath(__DIR__);
 
 $viewModel = new SampleViewModel('タイトル', 'トークン');
 
-$writer->setViewModel($viewModel);
+$writer->setView($viewModel);
 
 echo $writer->render('template.php');
